@@ -95,6 +95,12 @@ def setup_e2e_database() -> Generator[None, None, None]:
             is_active=True,
         )
         db.add(student)
+        db.commit()
+        db.refresh(student)
+
+    # Clean up previous test enrollments to ensure clean state
+    from suams.models.enrollment import Enrollment
+    db.query(Enrollment).filter(Enrollment.student_id == student.id).delete()
 
     # Seed E2E Course
     course = db.query(Course).filter(Course.code == "CSE 3206").first()
@@ -147,8 +153,9 @@ def test_student_core_journey_e2e(browser: webdriver.Chrome, live_server: str) -
     reg_btn.click()
 
     # 5. Verify Registration Status Message
-    status_badge = wait.until(EC.visibility_of_element_located((By.ID, "reg-status-badge")))
-    assert "PENDING" in status_badge.text or "Success" in status_badge.text
+    wait.until(EC.text_to_be_present_in_element((By.ID, "reg-status-badge"), "PENDING"))
+    status_badge = browser.find_element(By.ID, "reg-status-badge")
+    assert "PENDING" in status_badge.text
 
     # 6. Verify Results / Academic Notice Panel is accessible
     results_tab = browser.find_element(By.ID, "results-tab")
