@@ -8,6 +8,7 @@ from suams.users.router import router as users_router
 from suams.registration.router import router as registration_router
 from suams.exams.router import router as exams_router
 from suams.results.router import router as results_router
+from suams.portal import get_portal_html
 from suams.config import settings
 
 app = FastAPI(
@@ -36,6 +37,12 @@ app.include_router(exams_router, prefix=settings.API_V1_STR)
 app.include_router(results_router, prefix=settings.API_V1_STR)
 
 
+@app.get("/portal")
+def portal() -> Any:
+    """Serve the interactive web portal for students, teachers, and admins."""
+    return get_portal_html()
+
+
 @app.get("/")
 def root() -> dict[str, Any]:
     """Root endpoint verifying API availability."""
@@ -43,6 +50,7 @@ def root() -> dict[str, Any]:
         "project": settings.PROJECT_NAME,
         "status": "online",
         "docs": "/docs",
+        "portal": "/portal",
     }
 
 
