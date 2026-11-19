@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from suams.auth.router import router as auth_router
 from suams.users.router import router as users_router
+from suams.registration.router import router as registration_router
 from suams.exams.router import router as exams_router
 from suams.results.router import router as results_router
 from suams.config import settings
@@ -30,6 +31,7 @@ app.add_middleware(
 # Include module routers under /api
 app.include_router(auth_router, prefix=settings.API_V1_STR)
 app.include_router(users_router, prefix=settings.API_V1_STR)
+app.include_router(registration_router, prefix=settings.API_V1_STR)
 app.include_router(exams_router, prefix=settings.API_V1_STR)
 app.include_router(results_router, prefix=settings.API_V1_STR)
 
