@@ -73,9 +73,9 @@ def test_generate_exam_form_only_approved_courses_mocked() -> None:
     semester = 6
 
     # 3 mock enrollments: 1 APPROVED, 1 PENDING, 1 REJECTED
-    c1 = MagicMock(spec=Course, id=1, code="CSE 3206", title="Software Engineering", credits=3.0)
-    c2 = MagicMock(spec=Course, id=2, code="CSE 3208", title="Testing Lab", credits=1.5)
-    c3 = MagicMock(spec=Course, id=3, code="CSE 3210", title="Network Lab", credits=1.5)
+    c1 = MagicMock(spec=Course, id=1, code="CSE 3206", title="Software Engineering", credits=3.0, semester=semester)
+    c2 = MagicMock(spec=Course, id=2, code="CSE 3208", title="Testing Lab", credits=1.5, semester=semester)
+    c3 = MagicMock(spec=Course, id=3, code="CSE 3210", title="Network Lab", credits=1.5, semester=semester)
 
     e1 = MagicMock(spec=Enrollment, id=10, student_id=student_id, course_id=1, status=EnrollmentStatus.APPROVED, course=c1)
     e2 = MagicMock(spec=Enrollment, id=11, student_id=student_id, course_id=2, status=EnrollmentStatus.PENDING, course=c2)
