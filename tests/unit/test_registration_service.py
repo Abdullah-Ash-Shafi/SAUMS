@@ -141,12 +141,19 @@ def test_check_prerequisites_prerequisite_satisfied() -> None:
     mock_course = MagicMock(spec=Course)
     mock_course.id = 20
     mock_course.prerequisite_id = 10
-    mock_db.query.return_value.filter.return_value.first.return_value = mock_course
 
-    # Student has approved enrollment in prerequisite course 10
     prereq_enrollment = MagicMock(spec=Enrollment)
     prereq_enrollment.status = EnrollmentStatus.APPROVED
-    mock_db.query.return_value.filter.return_value.filter.return_value.first.return_value = prereq_enrollment
+
+    def query_side_effect(model):
+        query_mock = MagicMock()
+        if model == Course:
+            query_mock.filter.return_value.first.return_value = mock_course
+        elif model == Enrollment:
+            query_mock.filter.return_value.first.return_value = prereq_enrollment
+        return query_mock
+
+    mock_db.query.side_effect = query_side_effect
 
     assert check_prerequisites(student_id=1, course_id=20, db=mock_db) is True
 
@@ -157,10 +164,16 @@ def test_check_prerequisites_prerequisite_not_satisfied() -> None:
     mock_course = MagicMock(spec=Course)
     mock_course.id = 20
     mock_course.prerequisite_id = 10
-    mock_db.query.return_value.filter.return_value.first.return_value = mock_course
 
-    # Prerequisite enrollment not found
-    mock_db.query.return_value.filter.return_value.filter.return_value.first.return_value = None
+    def query_side_effect(model):
+        query_mock = MagicMock()
+        if model == Course:
+            query_mock.filter.return_value.first.return_value = mock_course
+        elif model == Enrollment:
+            query_mock.filter.return_value.first.return_value = None
+        return query_mock
+
+    mock_db.query.side_effect = query_side_effect
 
     assert check_prerequisites(student_id=1, course_id=20, db=mock_db) is False
 
