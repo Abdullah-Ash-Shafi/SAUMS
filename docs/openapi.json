@@ -1,0 +1,1319 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "SUAMS - Smart University Academic Management System",
+    "description": "Smart University Academic Management System API with strict RBAC, TDD, and Design Patterns.",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/auth/login": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Login",
+        "description": "Authenticate credentials and issue a signed JWT access token.\n\nReturns:\n    Token schema with bearer token and role.\n\nRaises:\n    HTTPException (401): If credentials are invalid.",
+        "operationId": "login_api_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Token"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Get Me",
+        "description": "Return the profile of the currently authenticated user.",
+        "operationId": "get_me_api_auth_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/users/dashboard": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Get Dashboard",
+        "description": "Return the role-specific dashboard for the currently authenticated user.\n\nUses UserDashboardFactory (Factory Pattern) to generate the customized payload.",
+        "operationId": "get_dashboard_api_users_dashboard_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Get Dashboard Api Users Dashboard Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/users/me": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Get Current Profile",
+        "description": "Return basic profile information for the authenticated user.",
+        "operationId": "get_current_profile_api_users_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Get Current Profile Api Users Me Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/registration/courses": {
+      "get": {
+        "tags": [
+          "Course Registration & Advising"
+        ],
+        "summary": "Get Courses",
+        "description": "Retrieve the full semester course catalog.",
+        "operationId": "get_courses_api_registration_courses_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CourseResponse"
+                  },
+                  "type": "array",
+                  "title": "Response Get Courses Api Registration Courses Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Course Registration & Advising"
+        ],
+        "summary": "Create Course",
+        "description": "Create a new course in the catalog. Restricted to DepartmentAdmin.",
+        "operationId": "create_course_api_registration_courses_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CourseCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourseResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/registration/register": {
+      "post": {
+        "tags": [
+          "Course Registration & Advising"
+        ],
+        "summary": "Register For Course",
+        "description": "Register the current student for a course.\n\nValidates prerequisites, seat capacity, and semester credit bounds (max 24 credits).\nInitializes advising status as PENDING.",
+        "operationId": "register_for_course_api_registration_register_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CourseRegistrationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnrollmentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/registration/my-courses": {
+      "get": {
+        "tags": [
+          "Course Registration & Advising"
+        ],
+        "summary": "Get My Courses",
+        "description": "Retrieve all enrolled/registered courses for the logged-in student.",
+        "operationId": "get_my_courses_api_registration_my_courses_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/EnrollmentResponse"
+                  },
+                  "type": "array",
+                  "title": "Response Get My Courses Api Registration My Courses Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/registration/advisor/pending": {
+      "get": {
+        "tags": [
+          "Course Registration & Advising"
+        ],
+        "summary": "Get Pending Advising Queue",
+        "description": "Retrieve pending course registrations awaiting advisor review.\n\nRestricted to Teacher and DepartmentAdmin.",
+        "operationId": "get_pending_advising_queue_api_registration_advisor_pending_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/EnrollmentResponse"
+                  },
+                  "type": "array",
+                  "title": "Response Get Pending Advising Queue Api Registration Advisor Pending Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/registration/advisor/approve/{enrollment_id}": {
+      "put": {
+        "tags": [
+          "Course Registration & Advising"
+        ],
+        "summary": "Approve Registration",
+        "description": "Approve a student's course registration.\n\nTransitions enrollment status: PENDING -> APPROVED.\nRestricted to Teacher and DepartmentAdmin.",
+        "operationId": "approve_registration_api_registration_advisor_approve__enrollment_id__put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "enrollment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Enrollment Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnrollmentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/registration/advisor/reject/{enrollment_id}": {
+      "put": {
+        "tags": [
+          "Course Registration & Advising"
+        ],
+        "summary": "Reject Registration",
+        "description": "Reject a student's course registration.\n\nTransitions enrollment status: PENDING -> REJECTED.\nRestricted to Teacher and DepartmentAdmin.",
+        "operationId": "reject_registration_api_registration_advisor_reject__enrollment_id__put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "enrollment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Enrollment Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnrollmentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/exams/teacher/evaluation-queue": {
+      "get": {
+        "tags": [
+          "Exams"
+        ],
+        "summary": "Get Teacher Evaluation Queue",
+        "description": "Protected endpoint for teachers to access continuous assessment and mark entry queue.\n\nEnforces RBAC: returns HTTP 403 Forbidden if accessed by non-Teacher roles.",
+        "operationId": "get_teacher_evaluation_queue_api_exams_teacher_evaluation_queue_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Get Teacher Evaluation Queue Api Exams Teacher Evaluation Queue Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/exams/form/generate": {
+      "post": {
+        "tags": [
+          "Exams"
+        ],
+        "summary": "Generate Exam Form",
+        "description": "Generate an exam form for the requesting student.\n\nStrictly ensures only courses with APPROVED enrollment status appear on the form.\nRestricted to Student role.",
+        "operationId": "generate_exam_form_api_exams_form_generate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExamFormGenerateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExamFormResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/exams/marks/entry": {
+      "post": {
+        "tags": [
+          "Exams"
+        ],
+        "summary": "Enter Marks",
+        "description": "Submit Continuous Assessment (CA, 40%) and Final Exam (60%) marks.\n\nEvaluates the result using white-box basis-path evaluated evaluateResult().\nRestricted to Teacher role.",
+        "operationId": "enter_marks_api_exams_marks_entry_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarkEntryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarkEntryResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/results/publish": {
+      "post": {
+        "tags": [
+          "Results"
+        ],
+        "summary": "Publish Results",
+        "description": "Publish results for a course. Restricted exclusively to ExamController.\n\nCalculates GPA and grades via the Strategy Pattern, marks results as published,\nand dispatches academic notifications via the Observer Pattern.",
+        "operationId": "publish_results_api_results_publish_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublishResultRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Publish Results Api Results Publish Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/results/my-results": {
+      "get": {
+        "tags": [
+          "Results"
+        ],
+        "summary": "Get My Results",
+        "description": "Retrieve published results and GPA for the currently logged-in student.",
+        "operationId": "get_my_results_api_results_my_results_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ResultResponse"
+                  },
+                  "type": "array",
+                  "title": "Response Get My Results Api Results My Results Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/portal": {
+      "get": {
+        "summary": "Portal",
+        "description": "Serve the interactive web portal for students, teachers, and admins.",
+        "operationId": "portal_portal_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Portal Portal Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "summary": "Root",
+        "description": "Root endpoint verifying API availability.",
+        "operationId": "root__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Root  Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/health": {
+      "get": {
+        "summary": "Health Check",
+        "description": "Health check endpoint for monitoring.",
+        "operationId": "health_check_api_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Health Check Api Health Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CourseCreate": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "credits": {
+            "type": "number",
+            "title": "Credits"
+          },
+          "seat_capacity": {
+            "type": "integer",
+            "title": "Seat Capacity",
+            "default": 60
+          },
+          "department": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Department"
+          },
+          "semester": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Semester"
+          },
+          "prerequisite_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prerequisite Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "title",
+          "credits"
+        ],
+        "title": "CourseCreate",
+        "description": "Schema for creating a course in the catalog."
+      },
+      "CourseRegistrationRequest": {
+        "properties": {
+          "course_id": {
+            "type": "integer",
+            "title": "Course Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "course_id"
+        ],
+        "title": "CourseRegistrationRequest",
+        "description": "Schema for submitting a course registration."
+      },
+      "CourseResponse": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "credits": {
+            "type": "number",
+            "title": "Credits"
+          },
+          "seat_capacity": {
+            "type": "integer",
+            "title": "Seat Capacity",
+            "default": 60
+          },
+          "department": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Department"
+          },
+          "semester": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Semester"
+          },
+          "prerequisite_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prerequisite Id"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "title",
+          "credits",
+          "id",
+          "created_at"
+        ],
+        "title": "CourseResponse",
+        "description": "Schema for course details returned to clients."
+      },
+      "EnrollmentResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "student_id": {
+            "type": "integer",
+            "title": "Student Id"
+          },
+          "course_id": {
+            "type": "integer",
+            "title": "Course Id"
+          },
+          "status": {
+            "$ref": "#/components/schemas/EnrollmentStatus"
+          },
+          "attendance": {
+            "type": "number",
+            "title": "Attendance"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "course": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CourseResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "student_id",
+          "course_id",
+          "status",
+          "attendance",
+          "created_at"
+        ],
+        "title": "EnrollmentResponse",
+        "description": "Schema for enrollment details and advising status."
+      },
+      "EnrollmentStatus": {
+        "type": "string",
+        "enum": [
+          "PENDING",
+          "APPROVED",
+          "REJECTED"
+        ],
+        "title": "EnrollmentStatus",
+        "description": "Enumeration of enrollment / advising statuses."
+      },
+      "ExamFormGenerateRequest": {
+        "properties": {
+          "semester": {
+            "type": "integer",
+            "maximum": 12.0,
+            "minimum": 1.0,
+            "title": "Semester",
+            "description": "Target semester number"
+          }
+        },
+        "type": "object",
+        "required": [
+          "semester"
+        ],
+        "title": "ExamFormGenerateRequest",
+        "description": "Schema for requesting exam form generation."
+      },
+      "ExamFormResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "student_id": {
+            "type": "integer",
+            "title": "Student Id"
+          },
+          "semester": {
+            "type": "integer",
+            "title": "Semester"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "approved_courses": {
+            "items": {
+              "$ref": "#/components/schemas/CourseResponse"
+            },
+            "type": "array",
+            "title": "Approved Courses"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "student_id",
+          "semester",
+          "status",
+          "approved_courses",
+          "created_at"
+        ],
+        "title": "ExamFormResponse",
+        "description": "Schema for generated exam form and cleared eligible courses."
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "LoginRequest": {
+        "properties": {
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
+          "password": {
+            "type": "string",
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "username",
+          "password"
+        ],
+        "title": "LoginRequest",
+        "description": "Schema for user login credentials."
+      },
+      "MarkEntryRequest": {
+        "properties": {
+          "student_id": {
+            "type": "integer",
+            "title": "Student Id"
+          },
+          "course_id": {
+            "type": "integer",
+            "title": "Course Id"
+          },
+          "ca_marks": {
+            "type": "number",
+            "maximum": 40.0,
+            "minimum": 0.0,
+            "title": "Ca Marks",
+            "description": "Continuous assessment marks (0-40)"
+          },
+          "final_marks": {
+            "type": "number",
+            "maximum": 60.0,
+            "minimum": 0.0,
+            "title": "Final Marks",
+            "description": "Final exam marks (0-60)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "student_id",
+          "course_id",
+          "ca_marks",
+          "final_marks"
+        ],
+        "title": "MarkEntryRequest",
+        "description": "Schema for teacher mark submission."
+      },
+      "MarkEntryResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "enrollment_id": {
+            "type": "integer",
+            "title": "Enrollment Id"
+          },
+          "student_id": {
+            "type": "integer",
+            "title": "Student Id"
+          },
+          "course_id": {
+            "type": "integer",
+            "title": "Course Id"
+          },
+          "ca_marks": {
+            "type": "number",
+            "title": "Ca Marks"
+          },
+          "final_marks": {
+            "type": "number",
+            "title": "Final Marks"
+          },
+          "total_marks": {
+            "type": "number",
+            "title": "Total Marks"
+          },
+          "evaluation_status": {
+            "type": "string",
+            "title": "Evaluation Status"
+          },
+          "is_published": {
+            "type": "boolean",
+            "title": "Is Published"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "enrollment_id",
+          "student_id",
+          "course_id",
+          "ca_marks",
+          "final_marks",
+          "total_marks",
+          "evaluation_status",
+          "is_published"
+        ],
+        "title": "MarkEntryResponse",
+        "description": "Schema returned after mark entry and evaluation."
+      },
+      "PublishResultRequest": {
+        "properties": {
+          "course_id": {
+            "type": "integer",
+            "title": "Course Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "course_id"
+        ],
+        "title": "PublishResultRequest",
+        "description": "Schema for requesting result publication for a course."
+      },
+      "ResultResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "enrollment_id": {
+            "type": "integer",
+            "title": "Enrollment Id"
+          },
+          "student_id": {
+            "type": "integer",
+            "title": "Student Id"
+          },
+          "course_id": {
+            "type": "integer",
+            "title": "Course Id"
+          },
+          "ca_marks": {
+            "type": "number",
+            "title": "Ca Marks"
+          },
+          "final_marks": {
+            "type": "number",
+            "title": "Final Marks"
+          },
+          "total_marks": {
+            "type": "number",
+            "title": "Total Marks"
+          },
+          "grade": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grade"
+          },
+          "gpa": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gpa"
+          },
+          "evaluation_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evaluation Status"
+          },
+          "is_published": {
+            "type": "boolean",
+            "title": "Is Published"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "enrollment_id",
+          "student_id",
+          "course_id",
+          "ca_marks",
+          "final_marks",
+          "total_marks",
+          "is_published"
+        ],
+        "title": "ResultResponse",
+        "description": "Schema for published course result."
+      },
+      "Token": {
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "title": "Access Token"
+          },
+          "token_type": {
+            "type": "string",
+            "title": "Token Type",
+            "default": "bearer"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "user_id": {
+            "type": "integer",
+            "title": "User Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "access_token",
+          "role",
+          "user_id"
+        ],
+        "title": "Token",
+        "description": "Schema for access token response."
+      },
+      "UserResponse": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
+          "full_name": {
+            "type": "string",
+            "title": "Full Name"
+          },
+          "role": {
+            "$ref": "#/components/schemas/UserRole"
+          },
+          "department": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Department"
+          },
+          "semester": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Semester"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "username",
+          "full_name",
+          "role",
+          "id",
+          "is_active",
+          "created_at"
+        ],
+        "title": "UserResponse",
+        "description": "Schema for returning user information."
+      },
+      "UserRole": {
+        "type": "string",
+        "enum": [
+          "Student",
+          "Teacher",
+          "DepartmentAdmin",
+          "ExamController"
+        ],
+        "title": "UserRole",
+        "description": "Enumeration of user roles in the academic management system."
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  }
+}
