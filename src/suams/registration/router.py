@@ -8,6 +8,11 @@ from suams.database import get_db
 from suams.models.course import Course
 from suams.models.enrollment import Enrollment, EnrollmentStatus
 from suams.models.user import User, UserRole
+from suams.notifications.publisher import (
+    AcademicEvent,
+    AcademicEventType,
+    academic_publisher,
+)
 from suams.registration.service import RegistrationService
 from suams.schemas.course import (
     CourseCreate,
@@ -89,11 +94,29 @@ def approve_registration(
     Restricted to Teacher and DepartmentAdmin.
     """
     try:
-        return RegistrationService.update_enrollment_status(
+        enrollment = RegistrationService.update_enrollment_status(
             enrollment_id=enrollment_id,
             new_status=EnrollmentStatus.APPROVED,
             db=db,
         )
+        recipient_email = (
+            enrollment.student.email
+            if enrollment.student and enrollment.student.email
+            else f"student{enrollment.student_id}@ruet.ac.bd"
+        )
+        academic_publisher.notify(
+            AcademicEvent(
+                event_type=AcademicEventType.REGISTRATION_APPROVED,
+                payload={
+                    "user_id": enrollment.student_id,
+                    "recipient": recipient_email,
+                    "enrollment_id": enrollment.id,
+                    "message": f"Your registration for course ID {enrollment.course_id} has been approved.",
+                },
+            ),
+            db=db,
+        )
+        return enrollment
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
 
