@@ -108,7 +108,8 @@ def auth_tokens(seeded_users: dict[str, User]) -> dict[str, str]:
     """Generate auth tokens for seeded users."""
     tokens = {}
     for role_key, user in seeded_users.items():
+        role_val = user.role.value if hasattr(user.role, "value") else str(user.role)
         tokens[role_key] = create_access_token(
-            data={"sub": user.username, "user_id": user.id, "role": user.role.value}
+            data={"sub": user.username, "user_id": user.id, "role": role_val}
         )
     return tokens
